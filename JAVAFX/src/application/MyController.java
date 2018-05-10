@@ -99,6 +99,8 @@ public class MyController implements Initializable {
 	        TextFieldTableCell<MyFile, String> cell = new TextFieldTableCell<>();
 	        cell.setOnMouseClicked((MouseEvent t) -> {
 	            if (t.getClickCount() == 2) {
+	            	//每次跳转重置selector
+	            	selector = null;
 	            	System.out.println("double clicked!!");
 	            	MyFile selectFile = mainTable.getSelectionModel().getSelectedItem();
 					if(selectFile.isFile)
@@ -176,6 +178,8 @@ public class MyController implements Initializable {
    //返回上一层按钮响应事件
    public void upButtonAction(ActionEvent event)
    {
+	   //每次跳转重置selector
+	   selector = null;
 	   //更新当前路径
 	   if(currentPath.indexOf("\\")!=currentPath.lastIndexOf("\\"))
 		   currentPath.delete(currentPath.lastIndexOf("\\"), currentPath.length());
@@ -222,20 +226,16 @@ public class MyController implements Initializable {
 	   filterInfo = result.get();
 	   //对selector对象进行更新
 	   selector = selectorFactory.getSelector(filterInfo);
-	   System.out.println(filterInfo.getType());
-	   System.out.println(selector);
-//	   System.out.println("nameTest");
-//	   System.out.println(filterInfo.isPattern());
-//	   System.out.println(filterInfo.getPattern());
-//	   System.out.println("timeTest");
-//	   System.out.println(filterInfo.isDate());
-//	   System.out.println(filterInfo.getStartDate());
-//	   System.out.println(filterInfo.getEndDate());
-//	   System.out.println("sizeTest");
-//	   System.out.println(filterInfo.isSize());
-//	   System.out.println(filterInfo.getSmallSize());
-//	   System.out.println(filterInfo.getLargeSize());
-//	   System.out.println("testEnd");
+//	   System.out.println("filetype  "+filterInfo.getType());
+//	   System.out.println(selector);
+	   if(selector!=null)
+		   for(int i=0;i<data.size();)
+		   {
+			   if(!selector.filter(data.get(i)))
+				   data.remove(i);
+			   else
+				   i++;
+		   }
    }
    
    public void sortButtonAction(ActionEvent event)

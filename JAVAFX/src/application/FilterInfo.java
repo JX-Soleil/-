@@ -12,17 +12,10 @@ public class FilterInfo {
 	private long smallSize;
 	private long largeSize;
 	
-	private boolean isPattern;
-	private boolean isDate;
-	private boolean isSize;
-	
 	private int type;
 	
 	public FilterInfo() {
 		// TODO Auto-generated constructor stub
-		isPattern = false;
-		isDate = false;
-		isSize = false;
 		type = 0;
 	}
 
@@ -74,29 +67,5 @@ public class FilterInfo {
 
 	public void setLargeSize(long largeSize) {
 		this.largeSize = largeSize;
-	}
-
-	public boolean isPattern() {
-		return isPattern;
-	}
-
-	public void setPattern(boolean isPattern) {
-		this.isPattern = isPattern;
-	}
-
-	public boolean isDate() {
-		return isDate;
-	}
-
-	public void setDate(boolean isDate) {
-		this.isDate = isDate;
-	}
-
-	public boolean isSize() {
-		return isSize;
-	}
-
-	public void setSize(boolean isSize) {
-		this.isSize = isSize;
 	}
 }
