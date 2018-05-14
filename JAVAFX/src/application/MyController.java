@@ -23,6 +23,8 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Dialog;
@@ -35,6 +37,8 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
 import javafx.util.Pair;
+import seacher.FileSearcher;
+import selector.ConcreteSelector;
 import selector.Selector;
 import selector.SelectorFactory;
 import sortor.ComparatorFactory;
@@ -58,9 +62,11 @@ public class MyController implements Initializable {
    private Button sortButton;
    @FXML
    private Button upButton;
+   @FXML
+   private Button jumpButton;
    
    ObservableList<MyFile> data = FXCollections.observableArrayList();
-   MyFile parentOfCurrentFile;
+   //MyFile parentOfCurrentFile;
    //记录当前路径
    private StringBuilder currentPath = new StringBuilder();
    
@@ -72,10 +78,7 @@ public class MyController implements Initializable {
    private Comparator<MyFile> comparator;
    private ComparatorFactory comparatorFactory = new ComparatorFactory();
    
-   //根目录列表
-   List<MyFile> rootList = new ArrayList<>();
-   
-   FilterInfo filterInfo = new FilterInfo();
+   //FilterInfo filterInfo = new FilterInfo();
    SortInfo sortInfo = new SortInfo();
    
    @Override
@@ -87,7 +90,8 @@ public class MyController implements Initializable {
 	  upButton.setDisable(true);
 	  //初始化selector
 	  comparator = comparatorFactory.getComparator(sortInfo);
-	  selector = selectorFactory.getSelector(filterInfo);
+	  
+	  selector = new ConcreteSelector();
 	  initTable();
 	  
    }
@@ -100,8 +104,8 @@ public class MyController implements Initializable {
 	        cell.setOnMouseClicked((MouseEvent t) -> {
 	            if (t.getClickCount() == 2) {
 	            	//每次跳转重置selector
-	            	selector = null;
-	            	System.out.println("double clicked!!");
+	            	selector = new ConcreteSelector();
+	            	//System.out.println("double clicked!!");
 	            	MyFile selectFile = mainTable.getSelectionModel().getSelectedItem();
 					if(selectFile.isFile)
 						return ;
@@ -112,26 +116,26 @@ public class MyController implements Initializable {
 					currentPath.append(selectFile.getName());
 					pathFiled.setText(currentPath.toString());
 					//更新文件列表
-					parentOfCurrentFile = selectFile;
+					//parentOfCurrentFile = selectFile;
 					data.clear();
-					
-					
-					//一个文件可能没有读权限---会报错--bug依然存在
-					if(selector!=null)
-					{
-						for(int i=0;i<selectFile.getFileList().size();i++)
-						{
-							if(selector.filter(selectFile.getFileList().get(i)))
-								data.add(selectFile.getFileList().get(i));
-						}
-					}
-					else {
-						data.addAll(selectFile.getFileList());
-					}
-					
 				
+					//一个文件可能没有读权限---会报错--bug依然存在
+//					if(selector!=null)
+//					{
+//						for(int i=0;i<selectFile.getFileList().size();i++)
+//						{
+//							if(selector.filter(selectFile.getFileList().get(i)))
+//								data.add(selectFile.getFileList().get(i));
+//						}
+//					}
+//					else {
+//						data.addAll(selectFile.getFileList());
+//					}
+
 					//执行筛选以及排序
-					data.sort(comparator);
+					ArrayList<MyFile> fileList = new ArrayList<>();
+					FileSearcher.scandir(currentPath.toString(), fileList, comparator, selector);
+					data.addAll(fileList);
 	            }
 	        });
 			//cell.setContextMenu(taskContextMenu );
@@ -143,10 +147,9 @@ public class MyController implements Initializable {
    {
 	   //初始化根目录列表
 	   File[] root = File.listRoots();   
+	   List<MyFile> rootList = new ArrayList<>();
 	   for(File f : root)
-	   {
 		   rootList.add(new MyFile(f));
-	   }
 	   data.addAll(rootList);
 	   data.sort(comparator);
 	   mainTable.setItems(data);
@@ -179,7 +182,7 @@ public class MyController implements Initializable {
    public void upButtonAction(ActionEvent event)
    {
 	   //每次跳转重置selector
-	   selector = null;
+	   selector = new ConcreteSelector();
 	   //更新当前路径
 	   if(currentPath.indexOf("\\")!=currentPath.lastIndexOf("\\"))
 		   currentPath.delete(currentPath.lastIndexOf("\\"), currentPath.length());
@@ -193,58 +196,69 @@ public class MyController implements Initializable {
 	   pathFiled.setText(currentPath.toString());
 	   
 	   //更新列表
-	   List<MyFile> listFile = new ArrayList<>();
-	   //data为空的时候会报错 ->已修复
-	   //data.get(0).getParent().getParent().getFileList();
-	   if(parentOfCurrentFile.getParent()!=null) {
-		   listFile = parentOfCurrentFile.getParent().getFileList();
-		   parentOfCurrentFile = parentOfCurrentFile.getParent();
-	   }  
-	   else
-		   listFile = rootList;
 	   data.clear();
-	   if(selector!=null)
-		{
-			for(int i=0;i<listFile.size();i++)
-			{
-				if(selector.filter(listFile.get(i)))
-					data.add(listFile.get(i));
-			}
-		}
-		else {
-			data.addAll(listFile);
-		}
-
-	   data.sort(comparator);
+	   ArrayList<MyFile> fileList = new ArrayList<>();
+	   FileSearcher.scandir(currentPath.toString(), fileList, comparator, selector);
+	   data.addAll(fileList);
    }
    
    public void filterButtonAction(ActionEvent event)
    {
-	   FilterDialog fDialog = new FilterDialog(filterInfo);
+	   FilterDialog fDialog = new FilterDialog();
 	   //获取返回值result---设定Filter
-	   Optional<FilterInfo> result = fDialog.showAndWait();
-	   filterInfo = result.get();
+	   Optional<Selector> result = fDialog.showAndWait();
+	   selector = result.get();
 	   //对selector对象进行更新
-	   selector = selectorFactory.getSelector(filterInfo);
-//	   System.out.println("filetype  "+filterInfo.getType());
-//	   System.out.println(selector);
-	   if(selector!=null)
-		   for(int i=0;i<data.size();)
-		   {
-			   if(!selector.filter(data.get(i)))
-				   data.remove(i);
-			   else
-				   i++;
-		   }
+	   for(int i=0;i<data.size();)
+	   {
+		   if(!selector.filter(data.get(i)))
+			   data.remove(i);
+		   else
+			   i++;
+	   }
    }
    
    public void sortButtonAction(ActionEvent event)
    {
-	   System.out.println("click");
+	   //System.out.println("click");
 	   SortDialog sDialog = new SortDialog(sortInfo);
 	   Optional<SortInfo> result=sDialog.showAndWait();
 	   sortInfo = result.get();
 	   comparator = comparatorFactory.getComparator(sortInfo);
 	   data.sort(comparator);
+   }
+   
+   public void jumpButtonAction(ActionEvent event)
+   {
+	   //System.out.println("jump");
+	   MyFile myFile = new MyFile(new File(pathFiled.getText()));
+	   if(!myFile.exists()) {
+		   Alert alert = new Alert(AlertType.ERROR);
+		   alert.setTitle("Error Dialog");
+		   alert.setHeaderText("出现了一个错误！");
+		   alert.setContentText("没有这个文件或者目录！");
+		   alert.showAndWait();
+	   }
+	   else {
+		   if(myFile.isDir){
+			   //有个小bug,没有更新parentOfCurrentFile,返回上一层时会有问题	   
+			   data.clear();
+			   for(MyFile f : myFile.getFileList())
+			   {
+				   if(selector.filter(f))
+					   data.add(f);
+			   }
+			   data.sort(comparator);
+			   currentPath.setLength(0);
+			   currentPath.append(pathFiled.getText());
+		   }
+		   else {
+			   Alert alert = new Alert(AlertType.ERROR);
+			   alert.setTitle("Error Dialog");
+			   alert.setHeaderText("出现了一个错误！");
+			   alert.setContentText("路径必须为一个目录！");
+			   alert.showAndWait();
+		   }
+	   }
    }
 }

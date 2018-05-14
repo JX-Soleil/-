@@ -5,30 +5,44 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import application.MyFile;
 import selector.Selector;
-import selector.SelectorFactory;
-import sortor.ComparatorFactory;
 
 public class FileSearcher{
 
-	public void scandir(String path,ArrayList<File> fileList,
-			Comparator<File> comparator,Selector selector)
+	public static void scandir(String path,ArrayList<MyFile> fileList,
+			Comparator<MyFile> comparator,Selector selector)
 	{
+		if(path.isEmpty())
+		{
+			File[] root = File.listRoots();   
+			fileList.clear();
+			for(File f : root)
+			{
+				MyFile mf = new MyFile(f);
+				if(selector.filter(mf))
+					fileList.add(mf);
+			}
+			fileList.sort(comparator);
+			return ;
+		}
+		
 		File dir = new File(path);
-		//谓词选择
-		//放到参数中
-		//Selector selector =  new SelectorFactory().getSelector();
-		fileList.clear();
-		//有问题MyFILE
-//		for(File f:dir.listFiles())
-//		{
-//			if(selector.filter(f))
-//				fileList.add(f);
-//		}
-		//fileList排序
-		//放到参数中
-		//Comparator<File> comparator = new ComparatorFactory().getComparator();
+		//System.out.println("path:  "+path);
+		//筛选
+		if(dir.exists()&&dir.isDirectory())
+		{
+			fileList.clear();
+			for(File file : dir.listFiles()) {
+				MyFile mf = new MyFile(file);
+				//System.out.println(mf.getName());
+				if(selector.filter(mf))
+					fileList.add(mf);
+			}
+		}
+		//排序
 		fileList.sort(comparator);
-		Collections.sort(fileList, comparator);
+		//System.out.println("list:  "+fileList);
+		//Collections.sort(fileList, comparator);
 	}
 }

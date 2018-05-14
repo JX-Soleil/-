@@ -32,7 +32,7 @@ public class MyFile {
 	
 	public MyFile()
 	{
-		isFile = false;
+		isFile = true;
 		isDir = false;
 	}
 	
@@ -53,7 +53,7 @@ public class MyFile {
 	}
 	
 	public MyFile(String path) {
-		this(new File(path));	
+		this(new File(path));
 	}
 	
 	public MyFile(File f , MyFile parent)
@@ -124,17 +124,8 @@ public class MyFile {
 		return parent;
 	}
 	
-	
-	public boolean canWrite()
+	public boolean exists()
 	{
-		return file.canWrite();
-	}
-	public boolean canRead()
-	{
-		return file.canRead();
-	}
-	public boolean isHidden()
-	{
-		return file.isHidden();
+		return file.exists();
 	}
 }

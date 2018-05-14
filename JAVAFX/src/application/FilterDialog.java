@@ -1,16 +1,19 @@
 package application;
 
-import java.io.File;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
 
-import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
@@ -19,14 +22,24 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
+
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
+import selector.ConcreteSelector;
+import selector.Selector;
+import selector.SelectorFactory;
 
-public class FilterDialog extends Dialog<FilterInfo>{
+public class FilterDialog extends Dialog<Selector>{
 	FilterInfo filterInfo = new FilterInfo();
+	
+	Selector selector = new ConcreteSelector();
 	
 	CheckBox nameCheckBox = new CheckBox("文件名匹配");
 	CheckBox timeCheckBox = new CheckBox("文件时间匹配");
@@ -40,6 +53,9 @@ public class FilterDialog extends Dialog<FilterInfo>{
 	TextField minSizeField = new TextField();
 	
 	TextField maxSizeField = new TextField();
+	
+	Button addButton = new Button("添加");
+	Button clearButton = new Button("清除");
 	
 	ChoiceBox<String> minUnit = new ChoiceBox<String>(FXCollections.observableArrayList(
 		    "B", "K", "M","G"));
@@ -58,6 +74,56 @@ public class FilterDialog extends Dialog<FilterInfo>{
 
 	Node ensureButton;
 	
+	TableView<TableInfo> infoTable;
+	TableColumn<TableInfo, String> nameCol;
+	TableColumn<TableInfo, String> detailCol;
+	
+	ObservableList<TableInfo> data = FXCollections.observableArrayList();
+	
+	public class TableInfo {
+		private FilterInfo info;
+		public SimpleStringProperty name = new SimpleStringProperty();
+		public SimpleStringProperty detail = new SimpleStringProperty();
+		public TableInfo(FilterInfo info) {
+			// TODO Auto-generated constructor stub
+			this.info = info;
+			switch (info.getType()) {
+			case 0: name.set("");break;
+			case 1: name.set("名称匹配");break;
+			case 2: name.set("时间匹配");break;
+			case 3: name.set("大小匹配");break;
+			default: break;
+			}	
+			switch (info.getType()) {
+			case 0: detail.set("");break;
+			case 1: detail.set(info.getPattern());break;
+			case 2: 
+				SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				detail.set(format.format(info.getStartDate())+"~"+format.format(info.getStartDate()));
+				break;
+			case 3: detail.set(info.getSmallSize()+"~"+info.getLargeSize());break;
+			default: break;
+			}	
+		}
+		public String getName()
+		{
+			return name.get();
+		}
+		public void setName(String name)
+		{
+			this.name.set(name);
+		}
+		
+		public String getDetail()
+		{
+			return detail.get();
+		}
+		public void setDetail(String detail)
+		{
+			this.detail.set(detail);
+		}
+	}
+	
 	//初始化pane,做一些布局设置
 	private void initPane()
 	{
@@ -65,30 +131,56 @@ public class FilterDialog extends Dialog<FilterInfo>{
 		grid.setHgap(10);
 		grid.setVgap(10);
 		grid.setPadding(new Insets(20, 150, 10, 10));
+		
+		grid.add(nameCheckBox, 1, 0);
 		 
-		grid.add(nameCheckBox, 0, 0);
+		grid.add(new Label("字符串模式"), 1, 1);
+		grid.add(patternField, 2, 1);
 		 
-		grid.add(new Label("字符串模式"), 0, 1);
-		grid.add(patternField, 1, 1);
+		grid.add(timeCheckBox, 1, 2);
+		grid.add(new Label("开始时间"), 1, 3);
+		grid.add(startDatePicker, 2, 3);
+		grid.add(new Label("结束时间"), 3, 3);
+		grid.add(endDatePicker, 4, 3);
 		 
-		grid.add(timeCheckBox, 0, 2);
+		grid.add(sizeCheckBox, 1, 4);
 		 
-		grid.add(new Label("开始时间"), 0, 3);
-		grid.add(startDatePicker, 1, 3);
-		grid.add(new Label("结束时间"), 2, 3);
-		grid.add(endDatePicker, 3, 3);
-		 
-		grid.add(sizeCheckBox, 0, 4);
-		 
-		grid.add(new Label("文件大小下限"), 0, 5);
-		grid.add(minSizeField, 0, 6);
-		grid.add(minUnit, 1, 6);
-		grid.add(new Label("文件大小上限"), 2, 5);
-		grid.add(maxSizeField, 2, 6);
-		grid.add(maxUnit, 3, 6);
+		grid.add(new Label("文件大小下限"), 1, 5);
+		grid.add(minSizeField, 1, 6);
+		grid.add(minUnit, 2, 6);
+		grid.add(new Label("文件大小上限"), 3, 5);
+		grid.add(maxSizeField, 3, 6);
+		grid.add(maxUnit, 4, 6);
+		
+		grid.add(addButton, 1, 7);
+		grid.add(clearButton, 2, 7);
+		
+		grid.add(infoTable,0,0,1,8);
 		this.getDialogPane().setContent(grid);
 	}
 	
+	//初始化tableView
+	private void initTable()
+	{
+		infoTable = new TableView<>();
+		infoTable.setMaxHeight(250);
+		
+		infoTable.setItems(data);
+		nameCol = new TableColumn<>("匹配模式");
+		//nameCol.setMinWidth(100);
+		detailCol = new TableColumn<>("详细");
+		detailCol.setMinWidth(200);
+		
+		nameCol.setSortable(false);
+	    nameCol.setCellFactory(TextFieldTableCell.forTableColumn());
+	    nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+	    
+	    detailCol.setSortable(false);
+	    nameCol.setCellFactory(TextFieldTableCell.forTableColumn());
+	    detailCol.setCellValueFactory(new PropertyValueFactory<>("detail"));
+	    
+	    infoTable.getColumns().addAll(nameCol,detailCol);
+	}
 	//ensureButton退出时需要做的更新filterInfo操作
 	private void updateFilterInfo()
 	{
@@ -139,6 +231,21 @@ public class FilterDialog extends Dialog<FilterInfo>{
 	//按键初始化，包括一些按键change()事件---包括什么时候禁用一些按键
 	private void initButton()
 	{
+		addButton.setOnAction((ActionEvent e)->{
+			updateFilterInfo();
+			TableInfo tableInfo = new TableInfo(filterInfo);
+			System.out.println(tableInfo.getName()+"  "+tableInfo.getDetail());
+			data.add(tableInfo);
+			selector = SelectorFactory.addDecorate(selector, filterInfo);
+		});
+		addButton.setDisable(true);
+		
+		clearButton.setOnAction((ActionEvent e)->{
+			selector = new ConcreteSelector();
+			//清空tableview 
+			data.clear();
+		});
+				
 		patternField.setDisable(true);
 		startDatePicker.setDisable(true);
 		endDatePicker.setDisable(true);
@@ -151,11 +258,11 @@ public class FilterDialog extends Dialog<FilterInfo>{
 		patternField.textProperty().addListener((observable, oldValue, newValue) -> {
 			if(newValue.equals("")) {
 				isPatternField = false;
-				ensureButton.setDisable(true);
+				addButton.setDisable(true);
 			}	
 			else {
 				isPatternField = true;
-				ensureButton.setDisable(false);
+				addButton.setDisable(false);
 			}
 		});
 		nameCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -166,13 +273,13 @@ public class FilterDialog extends Dialog<FilterInfo>{
 				
 				patternField.setDisable(false);
 				if(isPatternField)
-					ensureButton.setDisable(false);
+					addButton.setDisable(false);
 				else
-					ensureButton.setDisable(true);
+					addButton.setDisable(true);
 			}
 			else {
 				patternField.setDisable(true);
-				ensureButton.setDisable(false);
+				addButton.setDisable(true);
 			}
 		});
 		//文件修改时间部分
@@ -182,9 +289,9 @@ public class FilterDialog extends Dialog<FilterInfo>{
 			else
 				isStartPicker = false;
 			if(isStartPicker&&isEndPicker)
-				ensureButton.setDisable(false);
+				addButton.setDisable(false);
 			else
-				ensureButton.setDisable(true);
+				addButton.setDisable(true);
 				
 		});
 		endDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -193,9 +300,9 @@ public class FilterDialog extends Dialog<FilterInfo>{
 			else
 				isEndPicker = false;
 			if(isStartPicker&&isEndPicker)
-				ensureButton.setDisable(false);
+				addButton.setDisable(false);
 			else
-				ensureButton.setDisable(true);
+				addButton.setDisable(true);
 		});
 		timeCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
 			if(newValue) {
@@ -205,14 +312,14 @@ public class FilterDialog extends Dialog<FilterInfo>{
 				startDatePicker.setDisable(false);
 				endDatePicker.setDisable(false);
 				if(isStartPicker&&isEndPicker)
-					ensureButton.setDisable(false);
+					addButton.setDisable(false);
 				else
-					ensureButton.setDisable(true);
+					addButton.setDisable(true);
 			}
 			else {
 				startDatePicker.setDisable(true);
 				endDatePicker.setDisable(true);
-				ensureButton.setDisable(false);
+				addButton.setDisable(true);
 			}
 		});
 		//文件大小部分
@@ -225,9 +332,9 @@ public class FilterDialog extends Dialog<FilterInfo>{
 		        }
 		        isMinField = !minSizeField.getText().equals("");
 		        if(isMinField&&isMaxField&&isMinChoic&&isMaxChoic)
-					ensureButton.setDisable(false);
+		        	addButton.setDisable(false);
 				else
-					ensureButton.setDisable(true);
+					addButton.setDisable(true);
 		    }
 		});
 		maxSizeField.textProperty().addListener(new ChangeListener<String>() {
@@ -239,26 +346,26 @@ public class FilterDialog extends Dialog<FilterInfo>{
 		        }
 		        isMaxField = !maxSizeField.getText().equals("");
 		        if(isMinField&&isMaxField&&isMinChoic&&isMaxChoic)
-					ensureButton.setDisable(false);
+		        	addButton.setDisable(false);
 				else
-					ensureButton.setDisable(true);
+					addButton.setDisable(true);
 		    }
 		});	
 		minUnit.valueProperty().addListener((observable, oldValue, newValue) -> {
 			if(!isMinChoic&&newValue!=null)
 				isMinChoic = true;
 			if(isMinField&&isMaxField&&isMinChoic&&isMaxChoic)
-				ensureButton.setDisable(false);
+				addButton.setDisable(false);
 			else
-				ensureButton.setDisable(true);
+				addButton.setDisable(true);
 		});
 		maxUnit.valueProperty().addListener((observable, oldValue, newValue) -> {
 			if(!isMaxChoic&&newValue!=null)
 				isMaxChoic = true;
 			if(isMinField&&isMaxField&&isMinChoic&&isMaxChoic)
-				ensureButton.setDisable(false);
+				addButton.setDisable(false);
 			else
-				ensureButton.setDisable(true);
+				addButton.setDisable(true);
 		});
 		sizeCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
 			if(newValue)
@@ -271,41 +378,44 @@ public class FilterDialog extends Dialog<FilterInfo>{
 				maxUnit.setDisable(false);
 				//System.out.println(isMinField+" "+isMaxField+" "+isMinChoic+" "+isMaxChoic);
 				if(isMinField&&isMaxField&&isMinChoic&&isMaxChoic)
-					ensureButton.setDisable(false);
+					addButton.setDisable(false);
 				else
-					ensureButton.setDisable(true);
+					addButton.setDisable(true);
 			}
 			else {
 				minSizeField.setDisable(true);
 				maxSizeField.setDisable(true);
 				minUnit.setDisable(true);
 				maxUnit.setDisable(true);
-				ensureButton.setDisable(false);
+				addButton.setDisable(true);
 			}
 		});
 	}
 	
-	public FilterDialog(FilterInfo fInfo) {
+	public FilterDialog() {
 		// TODO Auto-generated constructor stub
-		filterInfo = fInfo;
+		//filterInfo = fInfo;
 		
 		this.setTitle("筛选器");
 		ButtonType ensureButtonType = new ButtonType("确定", ButtonData.OK_DONE);
 		this.getDialogPane().getButtonTypes().addAll(ensureButtonType, ButtonType.CANCEL);
 		ensureButton = this.getDialogPane().lookupButton(ensureButtonType);
 //		ensureButton.setDisable(true);
+		
 		minSizeField.setMaxSize(100, 20);
 		maxSizeField.setMaxSize(100, 20);
 		
 		initButton();
+		initTable();
 		//初始化布局
 		initPane();
 		
 		this.setResultConverter(dialogButton -> {
 		    if (dialogButton == ensureButtonType) {
-		    	updateFilterInfo();
+		    	return selector;
 		    }
-		    return filterInfo;
+		    else
+		    	return new ConcreteSelector();
 		});
 	}
 }
