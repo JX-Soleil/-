@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -37,6 +39,7 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
 import javafx.util.Pair;
+import log.Log;
 import seacher.FileSearcher;
 import selector.ConcreteSelector;
 import selector.Selector;
@@ -64,6 +67,12 @@ public class MyController implements Initializable {
    private Button upButton;
    @FXML
    private Button jumpButton;
+   @FXML
+   private Button recordButton;
+   @FXML
+   private Button saveRecordButton;
+   @FXML
+   private Button difButton;
    
    ObservableList<MyFile> data = FXCollections.observableArrayList();
    //MyFile parentOfCurrentFile;
@@ -231,8 +240,9 @@ public class MyController implements Initializable {
    public void jumpButtonAction(ActionEvent event)
    {
 	   //System.out.println("jump");
-	   MyFile myFile = new MyFile(new File(pathFiled.getText()));
-	   if(!myFile.exists()) {
+	   File file = new File(pathFiled.getText());
+	   
+	   if(!file.exists()) {
 		   Alert alert = new Alert(AlertType.ERROR);
 		   alert.setTitle("Error Dialog");
 		   alert.setHeaderText("出现了一个错误！");
@@ -240,13 +250,13 @@ public class MyController implements Initializable {
 		   alert.showAndWait();
 	   }
 	   else {
-		   if(myFile.isDir){
-			   //有个小bug,没有更新parentOfCurrentFile,返回上一层时会有问题	   
+		   if(file.isDirectory()){			  
 			   data.clear();
-			   for(MyFile f : myFile.getFileList())
+			   for(File f : file.listFiles())
 			   {
-				   if(selector.filter(f))
-					   data.add(f);
+				   MyFile mf = new MyFile(f);
+				   if(selector.filter(mf))
+					   data.add(mf);
 			   }
 			   data.sort(comparator);
 			   currentPath.setLength(0);
@@ -259,6 +269,17 @@ public class MyController implements Initializable {
 			   alert.setContentText("路径必须为一个目录！");
 			   alert.showAndWait();
 		   }
+	   }
+   }
+   
+   //日志模式
+   public void recordButtonAction(ActionEvent event)
+   {
+	   System.out.println("record click!!");
+	   Log log = new Log();
+	   HashMap<String, MyFile> map = (HashMap<String, MyFile>) log.record(pathFiled.getText());
+	   for(Entry<String, MyFile> entry :map.entrySet()) {
+		   System.out.println(entry);
 	   }
    }
 }

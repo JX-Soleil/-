@@ -30,10 +30,12 @@ public class FileSearcher{
 		File dir = new File(path);
 		//System.out.println("path:  "+path);
 		//ɸѡ
-		if(dir.exists()&&dir.isDirectory())
+		if(dir.exists()&&dir.isDirectory()&&dir.listFiles()!=null)
 		{
 			fileList.clear();
 			for(File file : dir.listFiles()) {
+//				if(file.isHidden())
+//					continue ;
 				MyFile mf = new MyFile(file);
 				//System.out.println(mf.getName());
 				if(selector.filter(mf))

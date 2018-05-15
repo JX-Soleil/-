@@ -1,4 +1,4 @@
-package application;
+package test;
 
 import java.io.File;
 import java.io.Serializable;
@@ -91,11 +91,7 @@ public class MyFile implements Serializable{
 	public void setSize(Long size) {
 		this.size=size;
 	}
-	
-//	public MyFile getParent()
-//	{
-//		return parent;
-//	}
+
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
