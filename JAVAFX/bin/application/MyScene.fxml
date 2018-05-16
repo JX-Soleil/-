@@ -58,7 +58,7 @@
          </columns></TableView>
       <Button fx:id="sortButton" layoutX="496.0" layoutY="2.0" mnemonicParsing="false" onAction="#sortButtonAction" text="排序器" />
       <Button fx:id="recordButton" layoutX="48.0" layoutY="154.0" mnemonicParsing="false" onAction="#recordButtonAction" text="日志模式" />
-      <Button fx:id="difButton" layoutX="48.0" layoutY="240.0" mnemonicParsing="false" text="差异模式" />
+      <Button fx:id="difButton" layoutX="48.0" layoutY="240.0" mnemonicParsing="false" onAction="#logCompareButtonAction" text="差异模式" />
       <Button fx:id="saveRecordButton" layoutX="48.0" layoutY="200.0" mnemonicParsing="false" text="保存日志" />
    </children>
 </AnchorPane>

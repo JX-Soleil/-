@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.rowset.serial.SerialStruct;
 
@@ -40,6 +41,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
 import javafx.util.Pair;
 import log.Log;
+import log.LogComparator;
 import seacher.FileSearcher;
 import selector.ConcreteSelector;
 import selector.Selector;
@@ -277,9 +279,36 @@ public class MyController implements Initializable {
    {
 	   System.out.println("record click!!");
 	   Log log = new Log();
-	   HashMap<String, MyFile> map = (HashMap<String, MyFile>) log.record(pathFiled.getText());
-	   for(Entry<String, MyFile> entry :map.entrySet()) {
-		   System.out.println(entry);
+	   final long start = System.nanoTime();
+	   ConcurrentHashMap<String, MyFile> map = (ConcurrentHashMap<String, MyFile>) log.record(pathFiled.getText());
+//	   for(Entry<String, MyFile> entry :map.entrySet()) {
+//		   System.out.println(entry);
+//	   }
+	   //System.out.println("./"+new MyFile(pathFiled.getText()).getName());
+	   final long end = System.nanoTime();
+	   log.saveLog(map, "./"+"C");
+	   final long end2 = System.nanoTime();
+	   System.out.println(" MAP Time taken: " + (end - start) / 1.0e9);
+	   System.out.println(" Save Time taken: " + (end2 - end) / 1.0e9);
+	   //System.out.println("fin");
+   }
+   
+   public void logCompareButtonAction(ActionEvent event)
+   {
+	   File file = new File(pathFiled.getText());
+	   if(file.exists())
+	   {
+		   File historyFile = new File("./"+"C");
+		   if(historyFile.exists())
+		   {
+			   Log log = new Log();
+			   ConcurrentHashMap<String, MyFile> historyMap = log.getHisLog(historyFile.getPath());
+			   ConcurrentHashMap<String, MyFile> currentMap = log.record(file.getPath());
+//			   for(Entry<String, MyFile> entry :hisMap.entrySet()) {
+//				   System.out.println(entry);
+//			   }
+			   LogComparator.getDif(currentMap, historyMap);
+		   }
 	   }
    }
 }

@@ -5,40 +5,30 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import application.MyFile;
 
 public class Log {
 	//将path路径下的全部文件、目录以及其所有子目录下的文件、目录记录到一个map表上
-	public Object record(String path){
+	public ConcurrentHashMap<String, MyFile> record(String path){
 		File root_record = new File(path);
-		HashMap<String, MyFile> map = new HashMap<>();
+		ConcurrentHashMap<String, MyFile> currentFileLog = new ConcurrentHashMap<>();
 		if(root_record.exists()){
 			System.out.println("entry record  "+root_record.getPath());
-				
-			makeRecord(root_record, map);
+			try {
+				currentFileLog =new RecordMaker().getFilesInDir(root_record);
+			} catch (InterruptedException | ExecutionException | TimeoutException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		else {
 			System.out.println("file not exist");
 		}
-		return map;
-	}
-	
-	//没有开线程----很慢
-	private void makeRecord(File file , HashMap<String, MyFile> map)
-	{
-		System.out.println("PUT : "+file.getName());
-		map.put(file.getPath(), new MyFile(file));
-		if(file.isDirectory()){
-			System.out.println("yes");
-			if(file.listFiles()!=null)
-			for(File f : file.listFiles()){
-//				if(f.isHidden())
-//					continue ;
-				System.out.println("f: "+f.canRead());
-				makeRecord(f, map);
-			}
-		}
+		return currentFileLog;
 	}
 	
 	//将日志文件保存到对应的文件下
@@ -47,7 +37,7 @@ public class Log {
 	}
 	
 	//从对应的文件中读取日志文件信息
-	public Object getHisLog(String path){
-		return FileSL.getObjFromFile(path);
+	public ConcurrentHashMap<String, MyFile> getHisLog(String path){
+		return (ConcurrentHashMap<String, MyFile>) FileSL.getObjFromFile(path);
 	}
 }
