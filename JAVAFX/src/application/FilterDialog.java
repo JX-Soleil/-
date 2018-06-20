@@ -6,14 +6,12 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
-
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
@@ -22,7 +20,6 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -31,15 +28,14 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.GridPane;
-import javafx.util.Pair;
-import selector.ConcreteSelector;
+import selector.NullSelector;
 import selector.Selector;
 import selector.SelectorFactory;
 
 public class FilterDialog extends Dialog<Selector>{
 	FilterInfo filterInfo = new FilterInfo();
 	
-	Selector selector = new ConcreteSelector();
+	Selector selector = new NullSelector();
 	
 	CheckBox nameCheckBox = new CheckBox("文件名匹配");
 	CheckBox timeCheckBox = new CheckBox("文件时间匹配");
@@ -81,12 +77,12 @@ public class FilterDialog extends Dialog<Selector>{
 	ObservableList<TableInfo> data = FXCollections.observableArrayList();
 	
 	public class TableInfo {
-		private FilterInfo info;
+		//private FilterInfo info;
 		public SimpleStringProperty name = new SimpleStringProperty();
 		public SimpleStringProperty detail = new SimpleStringProperty();
 		public TableInfo(FilterInfo info) {
 			// TODO Auto-generated constructor stub
-			this.info = info;
+			//this.info = info;
 			switch (info.getType()) {
 			case 0: name.set("");break;
 			case 1: name.set("名称匹配");break;
@@ -160,6 +156,7 @@ public class FilterDialog extends Dialog<Selector>{
 	}
 	
 	//初始化tableView
+	@SuppressWarnings("unchecked")
 	private void initTable()
 	{
 		infoTable = new TableView<>();
@@ -241,7 +238,7 @@ public class FilterDialog extends Dialog<Selector>{
 		addButton.setDisable(true);
 		
 		clearButton.setOnAction((ActionEvent e)->{
-			selector = new ConcreteSelector();
+			selector = new NullSelector();
 			//清空tableview 
 			data.clear();
 		});
@@ -415,7 +412,7 @@ public class FilterDialog extends Dialog<Selector>{
 		    	return selector;
 		    }
 		    else
-		    	return new ConcreteSelector();
+		    	return new NullSelector();
 		});
 	}
 }

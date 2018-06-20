@@ -1,8 +1,6 @@
 package sortor;
 
-import java.io.File;
 import java.util.Comparator;
-
 import application.MyFile;
 import application.SortInfo;
 
@@ -13,13 +11,13 @@ public class ComparatorFactory {
 		Comparator<MyFile> comparator=null;
 		switch (sortInfo.getType()) {
 		case 0:
-			comparator = new NameComparator(sortInfo.getOrder());
+			comparator = NameComparator.getNameComparator(sortInfo.getOrder());
 			break;
 		case 1:
-			comparator = new TimeComparator(sortInfo.getOrder());
+			comparator = TimeComparator.getTimeComparator(sortInfo.getOrder());
 			break;
 		case 2:
-			comparator = new SizeComparator(sortInfo.getOrder());
+			comparator = SizeComparator.getSizeComparator(sortInfo.getOrder());
 			break;
 		default:
 			break;

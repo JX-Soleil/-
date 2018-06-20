@@ -1,18 +1,22 @@
 package sortor;
 
-import java.io.File;
 import java.util.Comparator;
-import java.util.Date;
-
 import application.MyFile;
 
 public class SizeComparator implements Comparator<MyFile>{ 
 	
-	private boolean isUp;
-	public SizeComparator(boolean isUp) {
+	private static boolean isUp;
+	private static Comparator<MyFile> sizeComparator;
+	public SizeComparator() {
 		// TODO Auto-generated constructor stub
 		super();
-		this.isUp = isUp;
+	}
+	
+	public static Comparator<MyFile> getSizeComparator(boolean isUp) {
+		if(sizeComparator==null)
+			sizeComparator = new SizeComparator();
+		SizeComparator.isUp = isUp;
+		return sizeComparator;
 	}
 	
 	@Override

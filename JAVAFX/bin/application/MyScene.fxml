@@ -20,14 +20,10 @@
               <MenuItem mnemonicParsing="false" text="关闭" />
             </items>
           </Menu>
-          <Menu mnemonicParsing="false" text="主页">
+          <Menu mnemonicParsing="false" text="日志">
             <items>
-              <MenuItem mnemonicParsing="false" text="Delete" />
-            </items>
-          </Menu>
-          <Menu mnemonicParsing="false" text="查看">
-            <items>
-              <MenuItem mnemonicParsing="false" text="About" />
+              <MenuItem mnemonicParsing="false" onAction="#recordButtonAction" text="日志模式" />
+                  <MenuItem mnemonicParsing="false" onAction="#logCompareButtonAction" text="差异模式" />
             </items>
           </Menu>
             <Menu mnemonicParsing="false" text="帮助">
@@ -37,28 +33,21 @@
             </Menu>
         </menus>
       </MenuBar>
-      <HBox layoutY="25.0" prefHeight="25.0" prefWidth="90.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="25.0">
+      <HBox layoutY="25.0" prefHeight="25.0" prefWidth="30.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="25.0">
          <children>
-            <Button mnemonicParsing="false" prefHeight="23.0" prefWidth="30.0" text="←" />
-            <Button mnemonicParsing="false" prefHeight="23.0" prefWidth="30.0" text="→" />
             <Button fx:id="upButton" mnemonicParsing="false" onAction="#upButtonAction" prefHeight="23.0" prefWidth="30.0" text="↑" />
          </children>
       </HBox>
-      <TextField fx:id="pathFiled" layoutX="90.0" layoutY="25.0" onAction="#jumpButtonAction" prefHeight="23.0" prefWidth="313.0" AnchorPane.leftAnchor="90.0" AnchorPane.rightAnchor="197.0" AnchorPane.topAnchor="25.0" />
-      <TextField layoutX="433.0" layoutY="25.0" prefHeight="23.0" prefWidth="137.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="25.0" />
-      <Button fx:id="jumpButton" layoutX="403.0" layoutY="25.0" mnemonicParsing="false" onAction="#jumpButtonAction" prefHeight="23.0" prefWidth="30.0" text="↺" AnchorPane.rightAnchor="167.0" AnchorPane.topAnchor="25.0" />
-      <Button layoutX="570.0" layoutY="25.0" mnemonicParsing="false" prefHeight="23.0" prefWidth="30.0" text="☆" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" />
+      <TextField fx:id="pathFiled" layoutX="33.0" layoutY="25.0" onAction="#jumpButtonAction" prefHeight="23.0" prefWidth="535.0" AnchorPane.leftAnchor="33.0" AnchorPane.rightAnchor="32.0" AnchorPane.topAnchor="25.0" />
+      <Button fx:id="jumpButton" layoutX="570.0" layoutY="25.0" mnemonicParsing="false" onAction="#jumpButtonAction" prefHeight="23.0" prefWidth="30.0" text="↺" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" />
       <TreeView layoutY="50.0" prefHeight="352.0" prefWidth="150.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="50.0" />
-      <Button fx:id="filterButton" layoutX="548.0" layoutY="2.0" mnemonicParsing="false" onAction="#filterButtonAction" text="筛选器" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="2.0" />
-      <TableView fx:id="mainTable" layoutX="150.0" layoutY="48.0" prefHeight="350.0" prefWidth="452.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="50.0">
+      <Button fx:id="filterButton" layoutX="548.0" layoutY="1.0" mnemonicParsing="false" onAction="#filterButtonAction" text="筛选器" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0" />
+      <TableView fx:id="mainTable" layoutY="48.0" prefHeight="350.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="50.0">
          <columns>
-            <TableColumn fx:id="nameCol" prefWidth="101.0" text="名称" />
-            <TableColumn fx:id="lastModifiedCol" prefWidth="138.0" text="修改时间" />
-            <TableColumn fx:id="sizeCol" prefWidth="126.0" text="大小" />
+            <TableColumn fx:id="nameCol" prefWidth="193.0" text="名称" />
+            <TableColumn fx:id="lastModifiedCol" prefWidth="212.0" text="修改时间" />
+            <TableColumn fx:id="sizeCol" prefWidth="193.0" text="大小" />
          </columns></TableView>
-      <Button fx:id="sortButton" layoutX="496.0" layoutY="2.0" mnemonicParsing="false" onAction="#sortButtonAction" text="排序器" />
-      <Button fx:id="recordButton" layoutX="48.0" layoutY="154.0" mnemonicParsing="false" onAction="#recordButtonAction" text="日志模式" />
-      <Button fx:id="difButton" layoutX="48.0" layoutY="240.0" mnemonicParsing="false" onAction="#logCompareButtonAction" text="差异模式" />
-      <Button fx:id="saveRecordButton" layoutX="48.0" layoutY="200.0" mnemonicParsing="false" text="保存日志" />
+      <Button fx:id="sortButton" layoutX="496.0" layoutY="1.0" mnemonicParsing="false" onAction="#sortButtonAction" prefHeight="14.0" prefWidth="52.0" text="排序器" AnchorPane.rightAnchor="52.0" AnchorPane.topAnchor="1.0" />
    </children>
 </AnchorPane>

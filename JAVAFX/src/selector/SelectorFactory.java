@@ -3,6 +3,10 @@ package selector;
 import application.FilterInfo;
 
 public class SelectorFactory {
+	public Selector getSelector() {
+		return new NullSelector();
+	}
+	
 	static public Selector addDecorate(Selector selector , FilterInfo filterInfo)
 	{
 		switch (filterInfo.getType()) {

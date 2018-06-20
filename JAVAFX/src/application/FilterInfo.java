@@ -11,7 +11,6 @@ public class FilterInfo {
 	//文件大小范围
 	private long smallSize;
 	private long largeSize;
-	
 	private int type;
 	
 	public FilterInfo() {

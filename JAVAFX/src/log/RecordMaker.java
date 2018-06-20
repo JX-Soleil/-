@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -17,69 +16,66 @@ import java.util.concurrent.TimeoutException;
 import application.MyFile;
 
 public class RecordMaker {
+	class SubDirectoriesAndSize {
+		final public long size;
+		final public List<File> subDirectories;
+		public SubDirectoriesAndSize(final long totalSize, final List<File> theSubDirs) {
+			size = totalSize;
+			subDirectories = Collections.unmodifiableList(theSubDirs);
+		}
+	}
 
-    public static final String fileName = "C:\\";
-    private ConcurrentHashMap<String, MyFile> map = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<String, MyFile> map = new ConcurrentHashMap<>();
 
-//    public ConcurrentHashMap<String, MyFile> getMap()
-//    {
-//    	return map;
-//    }
-//    
-    private List<File> getSubDirs(final File file) {
-        final List<File> subDirectories = new ArrayList<File>();
-        if (file.isDirectory()) {
-            final File[] children = file.listFiles();
-            if (children != null)
-                for (final File child : children) {
-                	map.put(child.getPath(), new MyFile(child));
-                    if(child.isDirectory())
-                        subDirectories.add(child);
-                }
-        }
-        return subDirectories;
-    }
+	private SubDirectoriesAndSize getSubDirs(final File file) {
+		long total = 0;
+		final List<File> subDirectories = new ArrayList<File>();
+		if (file.isDirectory()) {
+			final File[] children = file.listFiles();
+			if (children != null)
+				for (final File child : children) {
+					map.put(child.getPath(), new MyFile(child));
+					if (child.isFile())
+						total+=child.length();
+					else
+						subDirectories.add(child);
+				}
+		}
+		return new SubDirectoriesAndSize(total,subDirectories);
+	}
 
-    public ConcurrentHashMap<String, MyFile> getFilesInDir(final File file)
-            throws InterruptedException, ExecutionException, TimeoutException {
-    	map.clear();
-        final ExecutorService service = Executors.newFixedThreadPool(100);
-        try {
-            final List<File> directories = new ArrayList<File>();
-            directories.add(file);
-            while (!directories.isEmpty()) {
-                final List<Future<List<File>>> partialResults = new ArrayList<Future<List<File>>>();
-                for (final File directory : directories) {
-                    partialResults.add(service
-                            .submit(new Callable<List<File>>() {
-                                public List<File> call() {
-                                    return getSubDirs(directory);
-                                }
-                            }));
-                }
-                directories.clear();
-                for (final Future<List<File>> partialResultFuture : partialResults) {
-                    final List<File> subDirectoriesAndSize = partialResultFuture
-                            .get(100, TimeUnit.SECONDS);
-                    directories.addAll(subDirectoriesAndSize);        
-                }
-            }
-        } finally {
-            service.shutdown();
-        }
-        return map;
-    }
-
-//    public static void main(final String[] args) throws InterruptedException,
-//            ExecutionException, TimeoutException {
-//        final long start = System.nanoTime();
-//        RecordMaker recordMaker= new RecordMaker();
-//        recordMaker.getFilesInDir(new File(fileName));
-//        final long end = System.nanoTime();
-////        for(Entry<String, MyFile> entry : recordMaker.map.entrySet())
-////        {
-////        	System.out.println(entry);
-////        }
-//        System.out.println("Time taken: " + (end - start) / 1.0e9);
-//    }
+	public long visitDir(final File file)
+			throws InterruptedException, ExecutionException, TimeoutException {
+		map.clear();
+		long total = 0;
+		final ExecutorService service = Executors.newFixedThreadPool(100);
+		try {
+			final List<File> directories = new ArrayList<File>();
+			directories.add(file);
+			while (!directories.isEmpty()) {
+				final List<Future<SubDirectoriesAndSize>> partialResults = new ArrayList<Future<SubDirectoriesAndSize>>();
+				for (final File directory : directories) {
+					partialResults.add(service.submit(new Callable<SubDirectoriesAndSize>() {
+						public SubDirectoriesAndSize call() {
+							return getSubDirs(directory);
+						}
+					}));
+				}
+				directories.clear();
+				for (final Future<SubDirectoriesAndSize> partialResultFuture : partialResults) {
+					final SubDirectoriesAndSize subDirectoriesAndSize = partialResultFuture.get(100, TimeUnit.SECONDS);
+					directories.addAll(subDirectoriesAndSize.subDirectories);
+					total += subDirectoriesAndSize.size;
+				}
+			}
+		} finally {
+			service.shutdown();
+		}
+		return total;
+	}
+	
+	public ConcurrentHashMap<String, MyFile> getFilesInDir(final File file)
+	{
+		return map;
+	}
 }

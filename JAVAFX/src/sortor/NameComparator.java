@@ -1,20 +1,27 @@
 package sortor;
 
-import java.io.File;
 import java.util.Comparator;
 
-import javax.imageio.ImageTypeSpecifier;
+import com.sun.glass.ui.TouchInputSupport;
 
 import application.MyFile;
 
 public class NameComparator implements Comparator<MyFile>{ 
 
-	private boolean isUp;
-	public NameComparator(boolean isUp) {
+	private static boolean isUp;
+	private static Comparator<MyFile> nameComparator;
+	private NameComparator() {
 		// TODO Auto-generated constructor stub
 		super();
-		this.isUp = isUp;
 	}
+	
+	public static Comparator<MyFile> getNameComparator(boolean isUp) {
+		if(nameComparator==null)
+			nameComparator = new NameComparator();
+		NameComparator.isUp = isUp;
+		return nameComparator;
+	}
+	
 	@Override
 	public int compare(MyFile arg0, MyFile arg1) {
 		// TODO Auto-generated method stub

@@ -2,12 +2,8 @@ package application;
 
 import java.io.File;
 import java.io.Serializable;
-import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import javafx.beans.property.SimpleLongProperty;
-import javafx.beans.property.SimpleStringProperty;
-
 
 public class MyFile implements Serializable{
 	private String name = new String();
@@ -17,8 +13,6 @@ public class MyFile implements Serializable{
 	
 	public final boolean isFile;
 	public final boolean isDir;
-
-	//private MyFile parent;
 	
 	public MyFile()
 	{
@@ -38,19 +32,11 @@ public class MyFile implements Serializable{
 		this.size=f.length();
 		this.isFile = f.isFile();
 		this.isDir = f.isDirectory();
-		//this.parent = null;
-		//this.file = f;
 	}
 	
 	public MyFile(String path) {
 		this(new File(path));
 	}
-	
-//	public MyFile(File f , MyFile parent)
-//	{
-//		this(f);
-//		//this.parent = parent;
-//	}
 
 	public String getName() {
 		return name;
@@ -91,11 +77,7 @@ public class MyFile implements Serializable{
 	public void setSize(Long size) {
 		this.size=size;
 	}
-	
-//	public MyFile getParent()
-//	{
-//		return parent;
-//	}
+
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub

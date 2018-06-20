@@ -2,9 +2,7 @@ package seacher;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-
 import application.MyFile;
 import selector.Selector;
 
@@ -28,23 +26,17 @@ public class FileSearcher{
 		}
 		
 		File dir = new File(path);
-		//System.out.println("path:  "+path);
 		//…∏—°
 		if(dir.exists()&&dir.isDirectory()&&dir.listFiles()!=null)
 		{
 			fileList.clear();
 			for(File file : dir.listFiles()) {
-//				if(file.isHidden())
-//					continue ;
 				MyFile mf = new MyFile(file);
-				//System.out.println(mf.getName());
 				if(selector.filter(mf))
 					fileList.add(mf);
 			}
 		}
 		//≈≈–Ú
 		fileList.sort(comparator);
-		//System.out.println("list:  "+fileList);
-		//Collections.sort(fileList, comparator);
 	}
 }

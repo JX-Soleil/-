@@ -1,19 +1,25 @@
 package sortor;
 
-import java.io.File;
 import java.util.Comparator;
 import java.util.Date;
-
 import application.MyFile;
 
 public class TimeComparator implements Comparator<MyFile>{
 
-	private boolean isUp;
-	public TimeComparator(boolean isUp) {
+	private static boolean isUp;
+	private static Comparator<MyFile> timeComparator;
+	public TimeComparator() {
 		// TODO Auto-generated constructor stub
 		super();
-		this.isUp = isUp;
 	}
+	
+	public static Comparator<MyFile> getTimeComparator(boolean isUp) {
+		if(timeComparator==null)
+			timeComparator = new TimeComparator();
+		TimeComparator.isUp = isUp;
+		return timeComparator;
+	}
+	
 	@Override
 	public int compare(MyFile arg0, MyFile arg1) {
 		// TODO Auto-generated method stub
